@@ -103,6 +103,12 @@ async function fetchBuses(lat, lon) {
     body: JSON.stringify({ lat, lon }),
   });
 
+  if (!response.ok) {
+    throw new Error("Erro na comunicação com o servidor.");
+  }
+
+  return await response.json();
+}
   const raw = await response.text();
   console.log("STATUS:", response.status);
   console.log("RAW RESPONSE:", raw);
