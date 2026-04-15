@@ -60,19 +60,33 @@ function getLocation() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (!position || !position.coords) {
+          reject(new Error("Erro ao obter coordenadas"));
+          return;
+        }
+
         resolve({
           lat: position.coords.latitude,
           lon: position.coords.longitude,
         });
       },
       (error) => {
-        console.error("Erro de localização:", error);
-        reject(new Error("Não foi possível obter localização"));
+        console.error("ERRO GEO:", error);
+
+        if (error.code === 1) {
+          reject(new Error("Permissão de localização negada"));
+        } else if (error.code === 2) {
+          reject(new Error("Localização indisponível"));
+        } else if (error.code === 3) {
+          reject(new Error("Tempo de localização expirado"));
+        } else {
+          reject(new Error("Erro desconhecido de localização"));
+        }
       },
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
   });
