@@ -89,19 +89,24 @@ function getLocation() {
 }
 
 async function fetchBuses(lat, lon) {
-  const response = await fetch(API_URL, {
+  const url = new URL(API_URL);
+
+  const response = await fetch(url.toString(), {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ lat, lon }),
+    body: JSON.stringify({
+      lat: Number(lat),
+      lon: Number(lon)
+    })
   });
 
   if (!response.ok) {
     throw new Error("Erro na comunicação com o servidor.");
   }
 
-  return await response.json();
+  return response.json();
 }
 
 function renderBuses(buses) {
@@ -132,12 +137,11 @@ async function handleSearch() {
 
   try {
     showStatus("loading", "Pegando sua localização...");
-    const { lat, lon } = await getLocation();
+    const location = await getLocation();
 
     showStatus("loading", "Consultando ônibus...");
-    const data = await fetchBuses(lat, lon);
+    const data = await fetchBuses(location.lat, location.lon);
 
-    console.log("DATA DO N8N:", data);
     hideStatus();
 
     if (data.success && data.buses && data.buses.length > 0) {
@@ -151,7 +155,7 @@ async function handleSearch() {
       showStatus("empty", "Não encontramos ônibus próximos no momento.");
     }
   } catch (err) {
-    console.error("ERRO FINAL:", err);
+    console.error(err);
     showStatus("error", err.message || "Erro ao buscar dados.");
   } finally {
     setLoading(false);
