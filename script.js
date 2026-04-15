@@ -89,24 +89,19 @@ function getLocation() {
 }
 
 async function fetchBuses(lat, lon) {
-  const url = new URL(API_URL);
-
-  const response = await fetch(url.toString(), {
+  const response = await fetch(API_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      lat: Number(lat),
-      lon: Number(lon)
-    })
+    body: JSON.stringify({ lat, lon }),
   });
 
   if (!response.ok) {
     throw new Error("Erro na comunicação com o servidor.");
   }
 
-  return response.json();
+  return await response.json();
 }
 
 function renderBuses(buses) {
