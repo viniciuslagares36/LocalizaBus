@@ -54,14 +54,14 @@ function hideResults() {
 function getLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Geolocalização não suportada"));
+      reject(new Error("Geolocalização não suportada pelo seu navegador."));
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         if (!position || !position.coords) {
-          reject(new Error("Erro ao obter coordenadas"));
+          reject(new Error("Erro ao obter coordenadas."));
           return;
         }
 
@@ -70,17 +70,19 @@ function getLocation() {
           lon: position.coords.longitude,
         });
       },
-      (error) => {
-        console.error("ERRO GEO:", error);
-
-        if (error.code === 1) {
-          reject(new Error("Permissão de localização negada"));
-        } else if (error.code === 2) {
-          reject(new Error("Localização indisponível"));
-        } else if (error.code === 3) {
-          reject(new Error("Tempo de localização expirado"));
-        } else {
-          reject(new Error("Erro desconhecido de localização"));
+      (err) => {
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            reject(new Error("Permissão de localização negada."));
+            break;
+          case err.POSITION_UNAVAILABLE:
+            reject(new Error("Localização indisponível."));
+            break;
+          case err.TIMEOUT:
+            reject(new Error("Tempo esgotado ao buscar localização."));
+            break;
+          default:
+            reject(new Error("Não foi possível obter sua localização."));
         }
       },
       {
@@ -91,6 +93,7 @@ function getLocation() {
     );
   });
 }
+
 async function fetchBuses(lat, lon) {
   const response = await fetch(API_URL, {
     method: "POST",
@@ -100,16 +103,16 @@ async function fetchBuses(lat, lon) {
     body: JSON.stringify({ lat, lon }),
   });
 
-  const text = await response.text();
-  console.log("RAW RESPONSE:", text);
+  const raw = await response.text();
+  console.log("STATUS:", response.status);
+  console.log("RAW RESPONSE:", raw);
 
   if (!response.ok) {
-    throw new Error("Erro no servidor");
+    throw new Error("Erro na comunicação com o servidor. Status: " + response.status);
   }
 
-  return JSON.parse(text);
+  return JSON.parse(raw);
 }
-
 function renderBuses(buses) {
   busListEl.innerHTML = "";
   buses.forEach(function (bus, i) {
@@ -139,15 +142,13 @@ async function handleSearch() {
   setLoading(true);
 
   try {
-    // Mensagens de status mais limpas conforme o código novo
     showStatus("loading", "Pegando sua localização...");
-    const position = await getLocation();
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+    const { lat, lon } = await getLocation();
 
     showStatus("loading", "Consultando ônibus...");
     const data = await fetchBuses(lat, lon);
 
+    console.log("DATA DO N8N:", data);
     hideStatus();
 
     if (data.success && data.buses && data.buses.length > 0) {
@@ -155,11 +156,13 @@ async function handleSearch() {
         .slice()
         .sort(function (a, b) { return a.distanceKm - b.distanceKm; })
         .slice(0, 5);
+
       renderBuses(sorted);
     } else {
       showStatus("empty", "Não encontramos ônibus próximos no momento.");
     }
   } catch (err) {
+    console.error("ERRO FINAL:", err);
     showStatus("error", err.message || "Erro ao buscar dados.");
   } finally {
     setLoading(false);
