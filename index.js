@@ -1,5 +1,5 @@
-const API_URL = "https://SEU-N8N/webhook/consultar-onibus";
-const TELEGRAM_URL = "https://t.me/SEU_BOT";
+const API_URL = "https://viniciuslagares36.app.n8n.cloud/webhook-test/consultar-onibus";
+const TELEGRAM_URL = "https://t.me/localizabus_bot?start=1"; // Link atualizado para o Telegram Bot
 
 // --- DOM Elements ---
 const btnSearch = document.getElementById("btn-search");
