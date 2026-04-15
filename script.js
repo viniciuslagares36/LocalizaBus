@@ -52,29 +52,31 @@ function hideResults() {
 // --- Core Functions ---
 
 function getLocation() {
-  return new Promise(function (resolve, reject) {
+  return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Geolocalização não suportada pelo seu navegador."));
+      reject(new Error("Geolocalização não suportada"));
       return;
     }
-    navigator.geolocation.getCurrentPosition(resolve, function (err) {
-      switch (err.code) {
-        case err.PERMISSION_DENIED:
-          reject(new Error("Permissão de localização negada. Abra as configurações do navegador ou dispositivo e permita o acesso à localização."));
-          break;
-        case err.POSITION_UNAVAILABLE:
-          reject(new Error("Localização indisponível. Verifique se o GPS está ligado e tente novamente."));
-          break;
-        case err.TIMEOUT:
-          reject(new Error("Tempo esgotado ao buscar localização. Tente novamente em um local com sinal melhor."));
-          break;
-        default:
-          reject(new Error("Não foi possível obter sua localização. Verifique as configurações de localização e tente novamente."));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error("Erro de localização:", error);
+        reject(new Error("Não foi possível obter localização"));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
-    }, { enableHighAccuracy: true, timeout: 10000 });
+    );
   });
 }
-
 async function fetchBuses(lat, lon) {
   const response = await fetch(API_URL, {
     method: "POST",
