@@ -80,11 +80,20 @@ function getLocation() {
 async function fetchBuses(lat, lon) {
   const response = await fetch(API_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lat: lat, lon: lon }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ lat, lon }),
   });
-  if (!response.ok) throw new Error("Erro na comunicação com o servidor.");
-  return response.json();
+
+  const text = await response.text();
+  console.log("RAW RESPONSE:", text);
+
+  if (!response.ok) {
+    throw new Error("Erro no servidor");
+  }
+
+  return JSON.parse(text);
 }
 
 function renderBuses(buses) {
