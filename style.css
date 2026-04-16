@@ -165,12 +165,12 @@ body {
     flex-shrink: 0;
 }
 
-:root[data-theme="light"] .logo img,
+/* No modo claro, inverte a logo branca para ficar escura */
 :root[data-theme="light"] .logo-img {
-    transform: none;
+    filter: invert(1);
     width: 3.5rem;
     height: 3.5rem;
-    }
+}
 
 .logo-icon {
     width: 3rem;
