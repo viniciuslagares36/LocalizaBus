@@ -160,3 +160,50 @@ async function handleSearch() {
 if (btnSearch) {
   btnSearch.addEventListener("click", handleSearch);
 }
+
+// --- Theme Toggle & Logo Update ---
+const themeToggle = document.getElementById("theme-toggle");
+const themeLabel = document.getElementById("theme-label");
+const logoImg = document.getElementById("logo-img");
+const html = document.documentElement;
+const THEME_STORAGE_KEY = "lb-theme";
+
+function updateLogoForTheme(theme) {
+  if (logoImg) {
+    logoImg.src = theme === "light"
+      ? "img/dark-removebg-preview.png"
+      : "img/white-removebg-preview.png";
+  }
+}
+
+function applyTheme(theme) {
+  if (theme === "light") {
+    html.setAttribute("data-theme", "light");
+    themeLabel.textContent = "Modo escuro";
+  } else {
+    html.removeAttribute("data-theme");
+    themeLabel.textContent = "Modo claro";
+  }
+  updateLogoForTheme(theme);
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (_) { }
+}
+
+(function initTheme() {
+  let savedTheme = null;
+  try {
+    savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (_) { }
+
+  const defaultTheme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  const themeToApply = savedTheme || defaultTheme;
+  applyTheme(themeToApply);
+
+  if (themeToggle) {
+    themeToggle.addEventListener("click", function () {
+      const isLight = html.getAttribute("data-theme") === "light";
+      applyTheme(isLight ? "dark" : "light");
+    });
+  }
+})();

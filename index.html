@@ -37,8 +37,8 @@
     <div class="container">
         <div class="header fade-in">
             <div class="logo">
-                <img id="logo-img" src="img/dark-removebg-preview.png" alt="Logo LocalizaBus" width="60" height="60"
-                    style="object-fit: contain;" />
+                <img id="logo-img" class="logo-img" src="img/dark-removebg-preview.png" alt="Logo LocalizaBus"
+                    width="70" height="70" />
                 <h1 class="neon-text">LocalizaBus</h1>
             </div>
             <p class="subtitle">Encontre os ônibus mais próximos de você em tempo real no Distrito Federal.</p>
@@ -84,53 +84,6 @@
     </div>
 
     <script src="script.js"></script>
-    <script>
-        // ── Theme toggle logic with logo update ──
-        (function () {
-            const root = document.documentElement;
-            const btn = document.getElementById('theme-toggle');
-            const label = document.getElementById('theme-label');
-            const logoImg = document.getElementById('logo-img');
-            const STORAGE = 'lb-theme';
-
-            function updateLogo(theme) {
-                if (logoImg) {
-                    logoImg.src = theme === 'light'
-                        ? 'img/dark-removebg-preview.png'
-                        : 'img/white-removebg-preview.png';
-                }
-            }
-
-            function applyTheme(theme) {
-                if (theme === 'light') {
-                    root.setAttribute('data-theme', 'light');
-                    label.textContent = 'Modo escuro';
-                } else {
-                    root.removeAttribute('data-theme');
-                    label.textContent = 'Modo claro';
-                }
-                updateLogo(theme);
-                try { localStorage.setItem(STORAGE, theme); } catch (_) { }
-            }
-
-            // Restore saved preference (or system preference)
-            let saved = null;
-            try { saved = localStorage.getItem(STORAGE); } catch (_) { }
-
-            if (saved) {
-                applyTheme(saved);
-            } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-                applyTheme('light');
-            } else {
-                applyTheme('dark');
-            }
-
-            btn.addEventListener('click', function () {
-                const isLight = root.getAttribute('data-theme') === 'light';
-                applyTheme(isLight ? 'dark' : 'light');
-            });
-        })();
-    </script>
 </body>
 
 </html>
