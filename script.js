@@ -129,32 +129,50 @@ async function handleSearch() {
   hideResults();
   hideStatus();
   setLoading(true);
+  showStatus("loading", "Pegando sua localização...");
 
-  try {
-    showStatus("loading", "Pegando sua localização...");
-    const location = await getLocation();
-
-    showStatus("loading", "Consultando ônibus...");
-    const data = await fetchBuses(location.lat, location.lon);
-
-    hideStatus();
-
-    if (data.success && data.buses && data.buses.length > 0) {
-      const sorted = data.buses
-        .slice()
-        .sort(function (a, b) { return a.distanceKm - b.distanceKm; })
-        .slice(0, 5);
-
-      renderBuses(sorted);
-    } else {
-      showStatus("empty", "Não encontramos ônibus próximos no momento.");
-    }
-  } catch (err) {
-    console.error(err);
-    showStatus("error", err.message || "Erro ao buscar dados.");
-  } finally {
+  if (!navigator.geolocation) {
+    showStatus("error", "Geolocalização não suportada pelo seu navegador.");
     setLoading(false);
+    return;
   }
+
+  navigator.geolocation.getCurrentPosition(
+    async function(position) {
+      try {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        showStatus("loading", "Consultando ônibus...");
+        const data = await fetchBuses(lat, lon);
+        hideStatus();
+
+        if (data.success && data.buses && data.buses.length > 0) {
+          const sorted = data.buses
+            .slice()
+            .sort(function(a, b) { return a.distanceKm - b.distanceKm; })
+            .slice(0, 5);
+          renderBuses(sorted);
+        } else {
+          showStatus("empty", "Não encontramos ônibus próximos no momento.");
+        }
+      } catch (err) {
+        showStatus("error", err.message || "Erro ao buscar dados.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    function(err) {
+      switch (err.code) {
+        case 1: showStatus("error", "Permissão de localização negada."); break;
+        case 2: showStatus("error", "Localização indisponível."); break;
+        case 3: showStatus("error", "Tempo esgotado ao buscar localização."); break;
+        default: showStatus("error", "Não foi possível obter sua localização.");
+      }
+      setLoading(false);
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
 }
 
 if (btnSearch) {
