@@ -125,17 +125,25 @@ function renderBuses(buses) {
   resultsEl.classList.remove("hidden");
 }
 
-async function handleSearch() {
+function handleSearch() {
   hideResults();
   hideStatus();
-  setLoading(true);
-  showStatus("loading", "Pegando sua localização...");
+
+  // Detecta Safari iOS
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   if (!navigator.geolocation) {
     showStatus("error", "Geolocalização não suportada pelo seu navegador.");
-    setLoading(false);
     return;
   }
+
+  setLoading(true);
+  showStatus("loading", "Pegando sua localização...");
+
+  const options = isIOS || isSafari
+    ? { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+    : { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
 
   navigator.geolocation.getCurrentPosition(
     async function(position) {
@@ -164,17 +172,16 @@ async function handleSearch() {
     },
     function(err) {
       switch (err.code) {
-        case 1: showStatus("error", "Permissão de localização negada."); break;
+        case 1: showStatus("error", "Permissão de localização negada. Vá em Ajustes > Safari > Localização e permita o acesso."); break;
         case 2: showStatus("error", "Localização indisponível."); break;
         case 3: showStatus("error", "Tempo esgotado ao buscar localização."); break;
-        default: showStatus("error", "Não foi possível obter sua localização.");
+        default: showStatus("error", "Erro de localização: " + err.message);
       }
       setLoading(false);
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    options
   );
 }
-
 if (btnSearch) {
   btnSearch.addEventListener("click", handleSearch);
 }
