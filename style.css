@@ -167,8 +167,10 @@ body {
 
 :root[data-theme="light"] .logo img,
 :root[data-theme="light"] .logo-img {
-    transform: translateY(-0.15rem);
-}
+    transform: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    }
 
 .logo-icon {
     width: 3rem;
