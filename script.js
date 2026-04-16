@@ -170,9 +170,7 @@ const THEME_STORAGE_KEY = "lb-theme";
 
 function updateLogoForTheme(theme) {
   if (logoImg) {
-    logoImg.src = theme === "light"
-      ? "img/dark-removebg-preview.png"
-      : "img/white-removebg-preview.png";
+    logoImg.src = "img/white-removebg-preview.png";
   }
 }
 

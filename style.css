@@ -158,16 +158,16 @@ body {
 
 .logo img,
 .logo-img {
-    width: 5rem;
-    height: 5rem;
+    width: 3.5rem;
+    height: 3.5rem;
     object-fit: contain;
     display: block;
     flex-shrink: 0;
 }
 
-/* No modo claro, inverte a logo branca para ficar escura */
+:root[data-theme="light"] .logo img,
 :root[data-theme="light"] .logo-img {
-    filter: invert(1);
+    filter: brightness(0);
     width: 3.5rem;
     height: 3.5rem;
 }
