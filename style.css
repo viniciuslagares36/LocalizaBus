@@ -158,9 +158,11 @@ body {
 
 .logo img,
 .logo-img {
-    width: 5.0rem;
-    height: 5.0rem;
+    width: 5rem;
+    height: 5rem;
     object-fit: contain;
+    display: block;
+    flex-shrink: 0;
 }
 
 .logo-icon {
