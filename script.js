@@ -160,36 +160,3 @@ async function handleSearch() {
 if (btnSearch) {
   btnSearch.addEventListener("click", handleSearch);
 }
-
-// --- Theme Toggle & Logo Update ---
-const themeToggle = document.getElementById("theme-toggle");
-const logoImg = document.getElementById("logo-img");
-const themeLabel = document.getElementById("theme-label");
-const html = document.documentElement;
-
-function updateLogoForTheme() {
-  const isDarkMode = html.getAttribute("data-theme") === "dark" ||
-    !html.hasAttribute("data-theme");
-
-  if (logoImg) {
-    logoImg.src = isDarkMode
-      ? "img/white-removebg-preview.png"
-      : "img/dark-removebg-preview.png";
-  }
-}
-
-if (themeToggle) {
-  themeToggle.addEventListener("click", function () {
-    const isDark = html.getAttribute("data-theme") === "dark";
-    html.setAttribute("data-theme", isDark ? "light" : "dark");
-    themeLabel.textContent = isDark ? "Modo claro" : "Modo escuro";
-    updateLogoForTheme();
-    localStorage.setItem("theme", isDark ? "light" : "dark");
-  });
-}
-
-// Inicializar tema ao carregar
-const savedTheme = localStorage.getItem("theme") || "dark";
-html.setAttribute("data-theme", savedTheme);
-themeLabel.textContent = savedTheme === "dark" ? "Modo escuro" : "Modo claro";
-updateLogoForTheme();

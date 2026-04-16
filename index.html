@@ -37,7 +37,7 @@
     <div class="container">
         <div class="header fade-in">
             <div class="logo">
-                <img id="logo-img" src="img/dark-removebg-preview.png" alt="Logo LocalizaBus" width="48" height="48"
+                <img id="logo-img" src="img/dark-removebg-preview.png" alt="Logo LocalizaBus" width="60" height="60"
                     style="object-fit: contain;" />
                 <h1 class="neon-text">LocalizaBus</h1>
             </div>
@@ -85,12 +85,21 @@
 
     <script src="script.js"></script>
     <script>
-        // ── Theme toggle logic ──
+        // ── Theme toggle logic with logo update ──
         (function () {
             const root = document.documentElement;
             const btn = document.getElementById('theme-toggle');
             const label = document.getElementById('theme-label');
+            const logoImg = document.getElementById('logo-img');
             const STORAGE = 'lb-theme';
+
+            function updateLogo(theme) {
+                if (logoImg) {
+                    logoImg.src = theme === 'light'
+                        ? 'img/dark-removebg-preview.png'
+                        : 'img/white-removebg-preview.png';
+                }
+            }
 
             function applyTheme(theme) {
                 if (theme === 'light') {
@@ -100,6 +109,7 @@
                     root.removeAttribute('data-theme');
                     label.textContent = 'Modo claro';
                 }
+                updateLogo(theme);
                 try { localStorage.setItem(STORAGE, theme); } catch (_) { }
             }
 
@@ -111,6 +121,8 @@
                 applyTheme(saved);
             } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
                 applyTheme('light');
+            } else {
+                applyTheme('dark');
             }
 
             btn.addEventListener('click', function () {
