@@ -116,69 +116,82 @@ async function searchDestinationSuggestions(query, origin = null) {
     lang: "pt"
   });
 
-  if (origin && Number.isFinite(origin.lat) && Number.isFinite(origin.lon)) {
+  // Only add lat/lon if origin is available and valid
+  if (origin && typeof origin.lat === 'number' && typeof origin.lon === 'number' &&
+    !isNaN(origin.lat) && !isNaN(origin.lon)) {
     params.set("lat", String(origin.lat));
     params.set("lon", String(origin.lon));
   }
 
   const url = `https://photon.komoot.io/api/?${params.toString()}`;
 
-  const response = await fetch(url, {
-    signal: destinationAbortController.signal
-  });
-
-  if (!response.ok) {
-    throw new Error("Erro ao buscar sugestões de destino.");
-  }
-
-  const data = await response.json();
-  const features = Array.isArray(data.features) ? data.features : [];
-
-  suggestionsEl.innerHTML = "";
-
-  if (!features.length) {
-    suggestionsEl.classList.add("hidden");
-    return;
-  }
-
-  features.forEach((feature) => {
-    const props = feature.properties || {};
-    const coords = feature.geometry?.coordinates || [];
-    const lon = Number(coords[0]);
-    const lat = Number(coords[1]);
-
-    const labelParts = [
-      props.name,
-      props.street,
-      props.housenumber,
-      props.city,
-      props.state
-    ].filter(Boolean);
-
-    const label = labelParts.join(", ");
-
-    const item = document.createElement("button");
-    item.type = "button";
-    item.className = "suggestion-item";
-    item.textContent = label || "Destino sem nome";
-
-    item.addEventListener("click", function () {
-      selectedPlace = {
-        name: props.name || label || "Destino selecionado",
-        address: label || null,
-        lat,
-        lng: lon
-      };
-
-      destInput.value = selectedPlace.address || selectedPlace.name;
-      suggestionsEl.innerHTML = "";
-      suggestionsEl.classList.add("hidden");
+  try {
+    const response = await fetch(url, {
+      signal: destinationAbortController.signal
     });
 
-    suggestionsEl.appendChild(item);
-  });
+    if (!response.ok) {
+      console.error("Photon API error:", response.status, response.statusText);
+      throw new Error("Erro ao buscar sugestões de destino.");
+    }
 
-  suggestionsEl.classList.remove("hidden");
+    const data = await response.json();
+    const features = Array.isArray(data.features) ? data.features : [];
+
+    suggestionsEl.innerHTML = "";
+
+    if (!features.length) {
+      suggestionsEl.classList.add("hidden");
+      return;
+    }
+
+    features.forEach((feature) => {
+      const props = feature.properties || {};
+      const coords = feature.geometry?.coordinates || [];
+      const lon = Number(coords[0]);
+      const lat = Number(coords[1]);
+
+      if (isNaN(lat) || isNaN(lon)) return; // Skip invalid coordinates
+
+      const labelParts = [
+        props.name,
+        props.street,
+        props.housenumber,
+        props.city,
+        props.state
+      ].filter(Boolean);
+
+      const label = labelParts.join(", ");
+
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "suggestion-item";
+      item.textContent = label || "Destino sem nome";
+
+      item.addEventListener("click", function () {
+        selectedPlace = {
+          name: props.name || label || "Destino selecionado",
+          address: label || null,
+          lat,
+          lng: lon
+        };
+
+        destInput.value = selectedPlace.address || selectedPlace.name;
+        suggestionsEl.innerHTML = "";
+        suggestionsEl.classList.add("hidden");
+      });
+
+      suggestionsEl.appendChild(item);
+    });
+
+    suggestionsEl.classList.remove("hidden");
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      console.error("Error in searchDestinationSuggestions:", err);
+      suggestionsEl.innerHTML = "";
+      suggestionsEl.classList.add("hidden");
+    }
+  }
 }
 
 if (destInput) {
