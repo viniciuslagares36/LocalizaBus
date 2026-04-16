@@ -340,15 +340,16 @@ async function confirmDestination() {
   hideResults();
   hideStatus();
   setLoading(true);
-  showStatus("loading", "Pegando sua localização...");
+  showStatus("loading", "Consultando rota...");
 
   try {
-    const origin = await captureLocation();
-    currentOriginForSuggestions = origin;
+    // Use the origin captured in handleSearch
+    const origin = currentOriginForSuggestions;
+    if (!origin) {
+      throw new Error("Localização não disponível. Tente novamente.");
+    }
 
     const payload = preparePayload(origin, dest);
-
-    showStatus("loading", "Consultando rota...");
     const data = await fetchRouteSearch(payload);
     hideStatus();
 
@@ -407,9 +408,27 @@ function renderBuses(buses) {
   resultsEl.classList.remove("hidden");
 }
 
+// --- Main Button Flow ---
+async function handleSearch() {
+  hideResults();
+  hideStatus();
+  setLoading(true);
+  showStatus("loading", "Pegando sua localização...");
+
+  try {
+    const origin = await captureLocation();
+    currentOriginForSuggestions = origin;
+    openModal();
+  } catch (err) {
+    showStatus("error", err.message || "Erro ao obter localização.");
+  } finally {
+    setLoading(false);
+  }
+}
+
 // --- Main Button ---
 if (btnSearch) {
-  btnSearch.addEventListener("click", openModal);
+  btnSearch.addEventListener("click", handleSearch);
 }
 
 if (btnConfirm) {
