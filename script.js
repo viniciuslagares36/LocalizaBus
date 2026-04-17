@@ -343,9 +343,9 @@ async function handleSearch() {
 }
 
 async function confirmDestination() {
-  let dest = captureDestination();
+  const text = (destInput.value || "").trim();
 
-  if (!dest) {
+  if (!text) {
     destInput.focus();
     showStatus("error", "Digite um destino.");
     return;
@@ -359,28 +359,16 @@ async function confirmDestination() {
       throw new Error("Localização não disponível. Tente novamente.");
     }
 
-    if (!dest.destinationLat || !dest.destinationLng) {
-      showStatus("loading", "Buscando destino...");
-      const resolved = await resolveDestinationFromText(dest.destinationText, currentOrigin);
-
-      if (!resolved) {
-        throw new Error("Não consegui localizar esse destino. Tente um nome mais completo.");
-      }
-
-      dest = resolved;
-      selectedPlace = {
-        name: dest.destinationText,
-        address: dest.destinationAddress,
-        lat: dest.destinationLat,
-        lng: dest.destinationLng
-      };
-    }
-
     closeModal();
     hideResults();
     showStatus("loading", "Consultando rota...");
 
-    const payload = preparePayload(currentOrigin, dest);
+    const payload = {
+      originLat: currentOrigin.lat,
+      originLon: currentOrigin.lon,
+      destinationText: text
+    };
+
     const data = await fetchRouteSearch(payload);
 
     hideStatus();
