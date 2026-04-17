@@ -24,6 +24,13 @@ let currentOrigin = null;
 const busIconSvg =
   '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="13" rx="2"/><rect x="5" y="8" width="4" height="3" rx="0.5"/><rect x="10" y="8" width="4" height="3" rx="0.5"/><rect x="15" y="8" width="3" height="3" rx="0.5"/><line x1="3" y1="13" x2="21" y2="13"/><line x1="12" y1="13" x2="12" y2="18"/><path d="M3 18v1a1 1 0 0 0 1 1h1M19 18v1a1 1 0 0 1-1 1h-1"/><circle cx="7" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/></svg>';
 
+// --- Space Text ---
+function normalizeText(text) {
+  return String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // --- Helpers ---
 function formatDistance(meters) {
   if (!Number.isFinite(meters)) return "-";
@@ -343,7 +350,7 @@ async function handleSearch() {
 }
 
 async function confirmDestination() {
-  const text = (destInput.value || "").trim();
+  const text = normalizeText(destInput.value);
 
   if (!text) {
     destInput.focus();
@@ -374,14 +381,9 @@ async function confirmDestination() {
     hideStatus();
 
     if (data.success && Array.isArray(data.buses) && data.buses.length > 0) {
-      const sorted = data.buses
-        .slice()
-        .sort((a, b) => Number(a.distanceKm || 0) - Number(b.distanceKm || 0))
-        .slice(0, 5);
-
-      renderBuses(sorted);
+      renderBuses(data.buses);
     } else {
-      showStatus("empty", "Não encontramos linhas compatíveis para esse destino.");
+      showStatus("empty", "Não encontramos linhas disponíveis.");
     }
   } catch (err) {
     console.error(err);
@@ -403,22 +405,31 @@ function renderBuses(buses) {
     card.className = "bus-card";
     card.style.animationDelay = `${i * 0.1}s`;
 
+    const instructionHtml = bus.instruction
+      ? `<p class="bus-card-instruction">${bus.instruction}</p>`
+      : `<p class="bus-card-instruction">Pegue a linha ${bus.routeId || "-"}</p>`;
+
     const stopHtml = bus.stopName
-      ? `<p class="bus-card-stop">Pegar em: ${bus.stopName}</p>`
+      ? `<p class="bus-card-stop">Parada de embarque: ${bus.stopName}</p>`
+      : "";
+
+    const destinationStopHtml = bus.destinationStopName
+      ? `<p class="bus-card-stop">Desça em: ${bus.destinationStopName}</p>`
       : "";
 
     const walkHtml = walkMinutes
-      ? `<p class="bus-card-arrival">Chegue em ${walkMinutes} min</p>`
-      : `<p class="bus-card-arrival">Tempo não disponível</p>`;
+      ? `<p class="bus-card-arrival">${walkMinutes} min a pé até a parada</p>`
+      : "";
 
     const distanceHtml = `<p class="bus-card-distance-label">${formatDistance(meters)} até a parada</p>`;
 
     card.innerHTML =
       `<div class="bus-card-icon">${busIconSvg}</div>
        <div class="bus-card-info">
-         <p class="bus-card-route">Linha ${bus.routeId || "-"}</p>
-         ${walkHtml}
+         ${instructionHtml}
          ${stopHtml}
+         ${destinationStopHtml}
+         ${walkHtml}
          ${distanceHtml}
        </div>
        <div class="bus-card-distance">${walkMinutes ? walkMinutes + " min" : "-"}</div>`;
