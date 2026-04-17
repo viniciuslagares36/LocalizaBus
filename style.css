@@ -6,6 +6,28 @@
     box-sizing: border-box;
 }
 
+html {
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+img,
+svg {
+    max-width: 100%;
+    height: auto;
+}
+
 /* ── Tema Escuro (padrão) ── */
 :root {
     --bg: #121212;
@@ -134,7 +156,8 @@ body {
 }
 
 .container {
-    max-width: 28rem;
+    width: min(100%, 28rem);
+    max-width: 100%;
     margin: 0 auto;
     padding: 4.5rem 1rem 2rem;
     min-height: 100vh;
@@ -394,6 +417,8 @@ h1 {
 .bus-card-info {
     flex: 1;
     min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .bus-card-route {
@@ -413,7 +438,9 @@ h1 {
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--accent);
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 :root:not([data-theme="light"]) .bus-card-distance {

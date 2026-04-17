@@ -397,29 +397,31 @@ function renderBuses(buses) {
 
   buses.forEach((bus, i) => {
     const meters = Number(bus.distanceKm || 0) * 1000;
+    const walkMinutes = Number(bus.walkMinutes || 0);
+
     const card = document.createElement("div");
     card.className = "bus-card";
     card.style.animationDelay = `${i * 0.1}s`;
 
-    const arrivalHtml = bus.arrivalMin != null
-      ? `<p class="bus-card-arrival">Chega em ${bus.arrivalMin} min</p>`
+    const stopHtml = bus.stopName
+      ? `<p class="bus-card-stop">Pegar em: ${bus.stopName}</p>`
       : "";
 
-    const timeHtml = bus.scheduledTime
-      ? `<p class="bus-card-time">Passa às ${bus.scheduledTime}</p>`
-      : "";
+    const walkHtml = walkMinutes
+      ? `<p class="bus-card-arrival">Chegue em ${walkMinutes} min</p>`
+      : `<p class="bus-card-arrival">Tempo não disponível</p>`;
 
-    const distanceHtml = `<p class="bus-card-distance-label">${formatDistance(meters)} de distância</p>`;
+    const distanceHtml = `<p class="bus-card-distance-label">${formatDistance(meters)} até a parada</p>`;
 
     card.innerHTML =
       `<div class="bus-card-icon">${busIconSvg}</div>
        <div class="bus-card-info">
          <p class="bus-card-route">Linha ${bus.routeId || "-"}</p>
-         ${arrivalHtml}
-         ${timeHtml}
+         ${walkHtml}
+         ${stopHtml}
          ${distanceHtml}
        </div>
-       <div class="bus-card-distance">${formatDistance(meters)}</div>`;
+       <div class="bus-card-distance">${walkMinutes ? walkMinutes + " min" : "-"}</div>`;
 
     busListEl.appendChild(card);
   });
