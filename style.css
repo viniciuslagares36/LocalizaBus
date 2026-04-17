@@ -396,28 +396,31 @@ h1 {
     min-width: 0;
     overflow-wrap: anywhere;
 
-.bus-card-route {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
+    .bus-card-route {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
 
-.bus-card-distance-label {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
+    .bus-card-distance-label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
 
-.bus-card-distance {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--accent);
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}wrapht"]) .bus-card-distance {
-    text-shadow: 0 0 10px hsla(160, 100%, 50%, .5), 0 0 40px hsla(160, 100%, 50%, .2);
+    .bus-card-distance {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--accent);
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    wrapht"]) .bus-card-distance {
+ text-shadow: 0 0 10px hsla(160, 100%, 50%, .5),
+    0 0 40px hsla(160, 100%, 50%, .2);
 }
 
 @keyframes cardIn {
