@@ -1,0 +1,255 @@
+/* ═══════════════════════════════════════════════════════════════
+   LocalizaBus — style-patch.css
+   Estilos adicionais para a visualização em tempo real de rotas
+   Adicione este bloco ao final do seu style.css existente
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Cards de parada ─────────────────────────────────────────── */
+.bus-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.stop-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stop-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.stop-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stop-meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.1rem;
+}
+
+/* ── Lista de partidas ───────────────────────────────────────── */
+.departures-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-left: 0.25rem;
+  border-left: 2px solid var(--accent-dim);
+  margin-left: 0.25rem;
+}
+
+.departure-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Badge da linha (número/código) */
+.route-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.4rem;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Destino da linha */
+.dep-headsign {
+  flex: 1;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* Grupo direito: indicador + tempo */
+.dep-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Indicador de tempo real */
+.realtime-dot,
+.scheduled-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 2rem;
+}
+
+.realtime-dot {
+  background: hsla(120, 80%, 40%, 0.15);
+  color: hsl(120, 70%, 38%);
+}
+
+:root:not([data-theme="light"]) .realtime-dot {
+  background: hsla(120, 80%, 50%, 0.15);
+  color: hsl(120, 80%, 55%);
+}
+
+.scheduled-dot {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* Badges de tempo */
+.dep-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 2rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dep-now {
+  background: hsl(0, 84%, 60%);
+  color: #fff;
+  animation: pulse-now 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-now {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.65; }
+}
+
+.dep-soon {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+:root:not([data-theme="light"]) .dep-soon {
+  text-shadow: 0 0 8px hsla(160, 100%, 50%, .6);
+}
+
+.dep-later {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+/* ── Barra de tempo real ─────────────────────────────────────── */
+.realtime-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.realtime-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.realtime-bar-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+}
+
+/* Barra de progresso do contador */
+.countdown-track {
+  display: inline-block;
+  width: 60px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.countdown-track #countdown-bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+/* ── Título da seção de resultados ───────────────────────────── */
+.results-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Responsividade mobile ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .departure-row {
+    gap: 0.35rem;
+  }
+
+  .dep-headsign {
+    font-size: 0.78rem;
+  }
+
+  .route-badge {
+    min-width: 2.5rem;
+    font-size: 0.72rem;
+  }
+
+  .dep-badge {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .realtime-dot,
+  .scheduled-dot {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.3rem;
+  }
+
+  .realtime-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  .countdown-track {
+    width: 45px;
+  }
+}
