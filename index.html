@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>LocalizaBus — Ônibus ao vivo no DF</title>
     <meta name="description" content="Encontre os ônibus mais próximos de você em tempo real no Distrito Federal.">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -36,67 +38,64 @@
                 <img id="logo-img" class="logo-img" src="img/white-removebg-preview.png" alt="Logo LocalizaBus">
                 <h1 class="neon-text">LocalizaBus</h1>
             </div>
-            <p class="subtitle">Encontre os ônibus mais próximos de você em tempo real no Distrito Federal.</p>
+            <p class="subtitle">Planeje sua rota e acompanhe seu ônibus em tempo real.</p>
         </div>
 
-        <div class="actions fade-in delay-1">
-            <button id="btn-search" class="btn-primary neon-glow">
-                <svg class="btn-icon" id="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="5" width="18" height="13" rx="2"></rect>
-                    <rect x="5" y="8" width="4" height="3" rx="0.5"></rect>
-                    <rect x="10" y="8" width="4" height="3" rx="0.5"></rect>
-                    <rect x="15" y="8" width="3" height="3" rx="0.5"></rect>
-                    <line x1="3" y1="13" x2="21" y2="13"></line>
-                    <line x1="12" y1="13" x2="12" y2="18"></line>
-                    <path d="M3 18v1a1 1 0 0 0 1 1h1M19 18v1a1 1 0 0 1-1 1h-1"></path>
-                    <circle cx="7" cy="20" r="1.5"></circle>
-                    <circle cx="17" cy="20" r="1.5"></circle>
-                </svg>
-                <span id="btn-text">Ver ônibus próximos</span>
+        <div class="search-box fade-in delay-1">
+            <div class="input-group">
+                <label for="origin-input">Sua localização</label>
+                <div class="input-wrapper">
+                    <input type="text" id="origin-input" placeholder="Minha localização atual" autocomplete="off">
+                    <button id="btn-use-gps" title="Usar GPS">📍</button>
+                </div>
+                <div id="origin-suggestions" class="suggestions-list hidden"></div>
+            </div>
+
+            <div class="input-group">
+                <label for="destination-input">Para onde você vai?</label>
+                <div class="input-wrapper">
+                    <input type="text" id="destination-input" placeholder="Ex: Rodoviária do Plano Piloto" autocomplete="off">
+                    <button id="btn-select-map" title="Escolher no mapa">🗺️</button>
+                </div>
+                <div id="destination-suggestions" class="suggestions-list hidden"></div>
+            </div>
+
+            <button id="btn-route-search" class="btn-primary neon-glow">
+                <span>Traçar Rota</span>
                 <div id="btn-spinner" class="spinner hidden"></div>
             </button>
-
-            <button class="btn-secondary" onclick="window.open('https://t.me/localizabus_bot', '_blank')">
-                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-                <span>Abrir no Telegram</span>
-            </button>
         </div>
+
+        <!-- Container do Mapa Principal -->
+        <div id="main-map" class="map-container fade-in delay-2"></div>
 
         <div id="status" class="status hidden"></div>
 
         <div id="results" class="results hidden">
-            <h2 class="results-title">Ônibus próximos</h2>
-            <div id="bus-list"></div>
+            <h2 class="results-title">Melhor opção</h2>
+            <div id="route-details"></div>
         </div>
 
         <p class="footer fade-in delay-2">LocalizaBus — Transporte público do DF</p>
     </div>
 
-    <!-- ══════════════════════════════════════
-         MODAL DE DESTINO
-         ══════════════════════════════════════ -->
-    <div id="destination-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <button id="modal-close" class="modal-close" aria-label="Fechar">×</button>
-
-            <h2 class="modal-title neon-text">Pra onde você quer ir?</h2>
-            <p class="modal-subtitle">Digite o destino e escolha uma sugestão</p>
-
-            <div class="modal-input-wrap">
-                <input id="destination-input" class="modal-input" type="text" placeholder="Ex: Rodoviária do Plano Piloto" autocomplete="off">
+    <!-- Modal para seleção no mapa -->
+    <div id="map-modal" class="modal-overlay hidden">
+        <div class="modal-card map-modal-card">
+            <div class="modal-header">
+                <h3>Escolher ponto no mapa</h3>
+                <button id="map-modal-close">×</button>
             </div>
-
-            <div id="suggestions-list" class="suggestions-list hidden"></div>
-
-            <button id="btn-confirm-dest" class="btn-primary neon-glow modal-confirm">
-                Confirmar destino
-            </button>
+            <div id="picker-map"></div>
+            <div class="modal-footer">
+                <span id="map-selection-text">Clique no mapa para selecionar</span>
+                <button id="btn-confirm-map" class="btn-primary" disabled>Confirmar</button>
+            </div>
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script src="script.js"></script>
 
 </body>
