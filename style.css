@@ -551,7 +551,8 @@ h1 {
 
   .site-footer {
     font-size: 9px;
-    opacity: 0.18;
+    opacity: 0.25;
+    align-items: end;
   }
 
   .step-title {
