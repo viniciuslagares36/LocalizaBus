@@ -20,11 +20,4 @@ Backend: Integração via n8n (Webhook).
 Ícones: SVG (Lucide/Feather icons).
 
 
-# 📦 Como usar
-Clone o repositório.
-
-Configure sua API_URL no arquivo script.js.
-
-Abra o index.html em qualquer navegador moderno.
-
-Desenvolvido para facilitar a mobilidade urbana no coração do Brasil.
+# 📦 Desenvolvido para facilitar a mobilidade urbana no coração do Brasil.
