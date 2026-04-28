@@ -408,7 +408,7 @@ function renderItinerary(itinerary) {
     const isWalk = leg.mode === "WALK";
 
     const lineName = leg.routeShortName || leg.route?.shortName || "—";
-    const tripDomId = sanitizeId(leg.tripId || lineName || "bus");
+    const legKey = getLegRealtimeKey(leg);
 
     card.innerHTML = `
       <div class="route-step">
@@ -420,7 +420,7 @@ function renderItinerary(itinerary) {
               ? `Ande ${Math.round(leg.distance)}m (${Math.round(leg.duration / 60)} min)`
               : `Saindo de ${originName}, pegue na parada ${leg.from?.name || "N/A"} sentido ${leg.headsign || "N/A"}`}
           </div>
-          ${!isWalk ? `<div class="realtime-status" id="rt-${tripDomId}">Buscando GPS...</div>` : ""}
+          ${!isWalk ? `<div class="realtime-status" id="rt-${legKey}">Buscando GPS...</div>` : ""}
         </div>
       </div>
     `;
@@ -484,23 +484,25 @@ async function startRealtimeTracking(itinerary) {
       busMarkers = [];
 
       transitLegs.forEach((leg) => {
-        const tripId = leg.tripId || leg.trip?.id;
-        const bus = vehicles.find((v) => v.trip && v.trip.id === tripId);
-        const statusNode = document.getElementById(`rt-${sanitizeId(tripId || leg.routeShortName || "bus")}`);
+        const legKey = getLegRealtimeKey(leg);
+        const statusNode = document.getElementById(`rt-${legKey}`);
+        const bus = findVehicleForLeg(vehicles, leg);
 
         if (bus && statusNode) {
-          statusNode.innerHTML = `<span style="color:var(--accent)">● Ao vivo</span> - Localizado`;
+          const { etaMinutes, distanceMeters } = getArrivalEstimateMinutes(bus, leg.to);
+          statusNode.innerHTML = `<span style="color:var(--accent)">● Ao vivo</span> · ${distanceMeters}m da parada · chega em ~${etaMinutes} min`;
 
           const marker = L.marker([bus.lat, bus.lon], {
             icon: L.divIcon({
               html: `<div class="live-bus-marker" style="background:var(--accent);width:15px;height:15px;border-radius:50%;border:2px solid white;box-shadow:var(--neon-glow);"></div>`,
               className: ""
             })
-          }).addTo(mainMap);
+          }).bindPopup(getBusPopupLabel(leg, bus, etaMinutes)).addTo(mainMap);
 
           busMarkers.push(marker);
         } else if (statusNode) {
-          statusNode.innerHTML = `<span style="color:var(--text-secondary)">Programado</span> - GPS indisponível agora`;
+          const lineName = leg.routeShortName || leg.route?.shortName || "—";
+          statusNode.innerHTML = `<span style="color:var(--text-secondary)">Programado</span> · sem GPS ao vivo para a linha ${lineName}`;
         }
       });
     } catch (e) {
@@ -590,6 +592,81 @@ function sanitizeId(value) {
 
 function normalizeText(text) {
   return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeRealtimeId(value) {
+  return normalizeText(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function getLegRealtimeKey(leg) {
+  const tripId = leg.tripId || leg.trip?.id || "";
+  const routeName = leg.routeShortName || leg.route?.shortName || "";
+  return sanitizeId(`${tripId || routeName || "bus"}-${routeName || "line"}`);
+}
+
+function findVehicleForLeg(vehicles, leg) {
+  const legTripId = leg.tripId || leg.trip?.id || "";
+  const legRouteShortName = leg.routeShortName || leg.route?.shortName || "";
+
+  const normalizedTripId = normalizeRealtimeId(legTripId);
+  const normalizedRoute = normalizeRealtimeId(legRouteShortName);
+  const legTo = leg.to || {};
+
+  const candidates = vehicles.filter((vehicle) => {
+    const vehicleTripId = normalizeRealtimeId(vehicle.trip?.id || "");
+    const vehicleRoute = normalizeRealtimeId(vehicle.route?.shortName || "");
+
+    if (normalizedTripId && vehicleTripId && vehicleTripId === normalizedTripId) {
+      return true;
+    }
+
+    if (normalizedRoute && vehicleRoute && vehicleRoute === normalizedRoute) {
+      return true;
+    }
+
+    return false;
+  });
+
+  if (!candidates.length) return null;
+  if (!legTo.lat || !legTo.lon) return candidates[0];
+
+  return candidates.sort((a, b) => {
+    const distA = getDistanceMeters(a.lat, a.lon, legTo.lat, legTo.lon);
+    const distB = getDistanceMeters(b.lat, b.lon, legTo.lat, legTo.lon);
+    return distA - distB;
+  })[0];
+}
+
+function getArrivalEstimateMinutes(vehicle, stop) {
+  if (!stop?.lat || !stop?.lon) {
+    return { etaMinutes: "?", distanceMeters: "?" };
+  }
+
+  const distanceMeters = Math.round(getDistanceMeters(vehicle.lat, vehicle.lon, stop.lat, stop.lon));
+  const averageBusSpeedMps = 6.1;
+  const etaMinutes = Math.max(1, Math.round(distanceMeters / averageBusSpeedMps / 60));
+  return { etaMinutes, distanceMeters };
+}
+
+function getBusPopupLabel(leg, bus, etaMinutes) {
+  const lineName = leg.routeShortName || leg.route?.shortName || bus.route?.shortName || "—";
+  const headsign = leg.headsign ? ` · ${leg.headsign}` : "";
+  return `Linha ${lineName}${headsign}<br>Chegada estimada: ~${etaMinutes} min`;
+}
+
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const earthRadius = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
 }
 
 function decodePolyline(str) {
