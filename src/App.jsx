@@ -1,3 +1,4 @@
+import { findLocalDfPlaces } from './services/semobStops';
 import React, { useState, useEffect, useRef, useCallback, Component } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -245,17 +246,16 @@ const fetchSuggestions = async (q) => {
     const r = await axios.get(
       `https://api.tomtom.com/search/2/search/${encodeURIComponent(safe)}.json`,
       { 
-        params: {
-          key: TOMTOM_API_KEY,
-          idxSet: 'POI,PAD,STR',      // Priorizar POIs e endereços
-          countrySet: 'BR',
-          categorySet: '9362',         // Transporte Público
-          lat: -15.7934,               // Centro de Brasília
-          lon: -47.8823,
-          radius: 50000,
-          limit: 5,
-          language: 'pt-BR'
-        },
+       params: {
+  key: TOMTOM_API_KEY,
+  idxSet: 'POI,PAD,STR',
+  countrySet: 'BR',
+  lat: -15.7934,
+  lon: -47.8823,
+  radius: 50000,
+  limit: 8,
+  language: 'pt-BR'
+},
         signal: abortRef.current.signal 
       }
     );
