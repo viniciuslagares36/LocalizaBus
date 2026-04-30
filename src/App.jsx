@@ -6,11 +6,33 @@ import {
   Loader2, Sun, Moon, AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
+import RouteResultRefatorado from './components/RouteResultRefatorado';
 
 // ─── API CONFIG ────────────────────────────────
 const TOMTOM_API_KEY = 'kVt12B5jgJTHfcvXLLDSPgcX6bz4f7R1';
 const SEMOB_API_BASE = 'https://otp.mobilibus.com/FY7J-lwk85QGbn/otp/routers/default';
 const API_URL = 'https://teste-6eye.onrender.com/api';
+
+
+// Normaliza códigos para comparar SEMOB x GPS (ex: "Linha 143.2", "143.2", "0.143")
+const normalizeLineCode = (value) => String(value || '')
+  .toLowerCase()
+  .replace('linha', '')
+  .replace(/[^0-9a-z.]/g, '')
+  .replace(/^0+(?=\d)/, '')
+  .trim();
+
+const sameLine = (a, b) => {
+  const x = normalizeLineCode(a);
+  const y = normalizeLineCode(b);
+  return !!x && !!y && (x === y || x.endsWith(y) || y.endsWith(x));
+};
+
+const getEtaMinutes = (eta) => {
+  if (!eta) return null;
+  const minutes = Math.round((new Date(eta).getTime() - Date.now()) / 60000);
+  return Number.isFinite(minutes) ? Math.max(minutes, 0) : null;
+};
 
 // ─── XSS PREVENTION ────────────────────────────
 const sanitizeInput = (value) => {
@@ -91,11 +113,11 @@ const useRouteSearch = () => {
     throw new Error('Endereço não encontrado');
   };
 
-  const getSEMOBRoute = async (origin, destination, signal) => {
+  const getSEMOBRoute = async (origin, destination, signal, mode = 'bus') => {
     try {
       const response = await axios.get(`${SEMOB_API_BASE}/plan`, {
         params: { fromPlace: `${origin.lat},${origin.lon}`, toPlace: `${destination.lat},${destination.lon}`,
-          mode: 'TRANSIT,WALK', locale: 'pt_BR', numItineraries: 3, walkSpeed: 1.4, wheelchair: false, showIntermediateStops: true },
+          mode: mode === 'walk' ? 'WALK' : 'TRANSIT,WALK', locale: 'pt_BR', numItineraries: 3, walkSpeed: 1.4, wheelchair: false, showIntermediateStops: true },
         timeout: 60000, signal
       });
       return response.data?.plan?.itineraries || [];
@@ -160,12 +182,16 @@ const useRouteSearch = () => {
         geocodeAddress(destinationAddress, signal)
       ]);
       const realtimeData = await getRealtimeVehicles();
-      const transitRoute = await getSEMOBRoute(originCoords, destCoords, signal);
+      window.__lastOriginCoords = originCoords;
+      const transitRoute = await getSEMOBRoute(originCoords, destCoords, signal, mode);
       const nearbyBuses = await getNearbyBuses(originCoords, signal);
       const combined = combineRoutes(transitRoute, nearbyBuses, originAddress, destinationAddress);
       setRoutes(combined.map(r => {
-        const rv = realtimeData.find(v => v.line === r.line || v.routeId === r.routeId);
-        if (rv) return { ...r, realTimeGPS: { lat: rv.lat, lon: rv.lon, bearing: rv.bearing, speed: rv.speed, eta: rv.eta }, isLive: true };
+        const rv = realtimeData.find(v => sameLine(v.line, r.line) || sameLine(v.routeId, r.routeId));
+        if (rv) {
+          const etaMin = getEtaMinutes(rv.eta);
+          return { ...r, time: etaMin ?? r.time, realTimeGPS: { lat: rv.lat, lon: rv.lon, bearing: rv.bearing, speed: rv.speed, eta: rv.eta }, isLive: true };
+        }
         return { ...r, isLive: false };
       }));
     } catch (err) {
@@ -180,8 +206,11 @@ const useRouteSearch = () => {
       if (window.__lastOriginCoords) {
         const nv = await getRealtimeVehicles();
         setRoutes(prev => prev.map(r => {
-          const rv = nv.find(v => v.line === r.line || v.routeId === r.routeId);
-          if (rv) return { ...r, realTimeGPS: { lat: rv.lat, lon: rv.lon, bearing: rv.bearing, speed: rv.speed, eta: rv.eta }, isLive: true };
+          const rv = nv.find(v => sameLine(v.line, r.line) || sameLine(v.routeId, r.routeId));
+          if (rv) {
+            const etaMin = getEtaMinutes(rv.eta);
+            return { ...r, time: etaMin ?? r.time, realTimeGPS: { lat: rv.lat, lon: rv.lon, bearing: rv.bearing, speed: rv.speed, eta: rv.eta }, isLive: true };
+          }
           return { ...r, isLive: false };
         }));
       }
@@ -525,7 +554,7 @@ function App() {
               {loading ? <><Loader2 className="h-4 w-4 animate-spin" />Buscando com GPS REAL…</> : 'Buscar rota agora'}
             </motion.button>
 
-            {(hasSearched || routes.length > 0) && <RouteResult routes={routes} origin={origin} destination={destination} loading={loading} />}
+            {(hasSearched || routes.length > 0) && <RouteResultRefatorado routes={routes} origin={origin} destination={destination} loading={loading} />}
 
             {error && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}

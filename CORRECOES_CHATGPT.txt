@@ -1,6 +1,0 @@
-Correções aplicadas:
-1. App.jsx agora usa RouteResultRefatorado, antes o componente criado não era renderizado.
-2. Matching do GPS foi normalizado para comparar melhor códigos de linha.
-3. window.__lastOriginCoords agora é definido após geocodificar, permitindo o refresh de GPS.
-4. Quando houver ETA do GPS, o badge usa o ETA como tempo.
-5. O botão Caminhada agora muda o modo enviado ao planejador.
