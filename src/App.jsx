@@ -203,21 +203,50 @@ const LocationInput = ({ value, onChange, placeholder, icon: Icon, onDetectLocat
   const debRef = useRef(null);
   const abortRef = useRef(null);
 
-  const fetchSuggestions = async (q) => {
-    const safe = sanitizeInput(q);
-    if (!safe || safe.length < 3) { setSuggestions([]); return; }
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
-    setSugLoading(true);
-    try {
-      const r = await axios.get(`https://api.tomtom.com/search/2/search/${encodeURIComponent(safe)}.json`, {
-        params: { key: TOMTOM_API_KEY, countrySet: 'BR', limit: 5, lat: -15.7934, lon: -47.8823, radius: 50000, language: 'pt-BR' },
-        signal: abortRef.current.signal
-      });
-      if (r.data.results) { setSuggestions(r.data.results); setShowSuggestions(true); }
-    } catch (e) { if (!axios.isCancel(e)) console.error(e); }
-    finally { setSugLoading(false); }
-  };
+// Adicionar na função fetchSuggestions do LocationInput em App.jsx
+const fetchSuggestions = async (q) => {
+  const safe = sanitizeInput(q);
+  if (!safe || safe.length < 3) { setSuggestions([]); return; }
+  
+  abortRef.current?.abort();
+  abortRef.current = new AbortController();
+  setSugLoading(true);
+  
+  try {
+    const r = await axios.get(
+      `https://api.tomtom.com/search/2/search/${encodeURIComponent(safe)}.json`,
+      { 
+        params: {
+          key: TOMTOM_API_KEY,
+          idxSet: 'POI,PAD,STR',      // Priorizar POIs e endereços
+          countrySet: 'BR',
+          categorySet: '9362',         // Transporte Público
+          lat: -15.7934,               // Centro de Brasília
+          lon: -47.8823,
+          radius: 50000,
+          limit: 5,
+          language: 'pt-BR'
+        },
+        signal: abortRef.current.signal 
+      }
+    );
+    
+    if (r.data.results) { 
+      setSuggestions(r.data.results); 
+      setShowSuggestions(true); 
+    }
+  } catch (e) { 
+    if (!axios.isCancel(e)) {
+      console.error('Erro na busca TomTom:', e);
+      // Tratar erro de localização negada
+      if (e.response?.status === 403) {
+        setError('Serviço de localização temporariamente indisponível');
+      }
+    }
+  } finally { 
+    setSugLoading(false); 
+  }
+};
 
   const handleChange = (e) => {
     const safe = sanitizeInput(e.target.value);
